@@ -1,9 +1,3 @@
-### Required skills
-- **Python**
-- **QA theory**
-- SQL
-- AWS
-
 ### Python self-assessment questions
 
 Pay attention, that open position requires strong skills in writing Python code.
@@ -18,3 +12,11 @@ These questions allow you to evaluate your knowledge and prepare to technical in
 - What are Magic/Dunder methods? How to override the string representation of an object?
 
 **These questions are not relevant to the practical task from README**
+
+### Main required skills
+
+- **Python**
+- **QA theory**
+- SQL
+- AWS
+- Git
