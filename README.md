@@ -1,4 +1,7 @@
-# Python self-assessment task 
+## Python self-assessment task 
+
+This Python task involves fetching data from API, JSON data handling, working with parquet files
+and performing simple calculations. Also, it requires basic git skills to upload the results. 
 
 ### Actual data
 Get products data from `https://dummyjson.com/products`.
@@ -16,8 +19,9 @@ Stored in `./data/product_prices_calculated.parquet`
 ### Task
 1. Clone this repo
 2. Create separate feature branch
-3. Write your Python code that answers the questions
-4. Create PR into this repo
+3. Write your Python code that answers the above questions
+4. Create PR into the master branch
 5. Share the PR link with our HR
 
-**Pay attention, that your code should follow PEP8 standards.** It should be easy to read, effective and explicit.
+**Pay attention, that your code should follow PEP8 standards.** 
+It should be easy to read, effective and explicit.
