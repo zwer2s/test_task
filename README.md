@@ -25,3 +25,6 @@ Stored in `./data/product_prices_calculated.parquet`
 
 **Pay attention, that your code should follow PEP8 standards.** 
 It should be easy to read, effective and explicit.
+
+
+If you have questions, feel free to reach out - dbulychev@jaxel.com
