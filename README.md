@@ -25,15 +25,15 @@ Stored in `./data/product_prices_calculated.parquet`
 5. Share the PR link with our HR
 
 **Pay attention, that your code should follow PEP8 standards.** 
-It should be easy to read, effective and explicit.
-It's recommended to create separate functions for each step of your solution (modular programming). 
+- It should be easy to read, effective and explicit.
+- It's recommended to create separate functions for each step of your solution (modular programming). 
 Like:
-`
+```
 get_actual_data()
 upload_expected_data()
 find_most_expensive_product()
 ...
-`
+```
 Feel free to use your own naming. It's just the example.
 
-If you have technical questions, feel free to reach out - dbulychev@jaxel.com or t.me/dena_den
+__If you have technical questions, feel free to reach out - dbulychev@jaxel.com or t.me/dena_den__
