@@ -1,6 +1,9 @@
 import os
 import requests
 import pandas as pd
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 COMPARE_FILE_PATH = "data/product_prices_calculated.parquet"
 DATA_DIR = "data"
@@ -24,6 +27,7 @@ def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0
         response.raise_for_status()
         data = response.json()
         total_products = data['total']
+        logging.info(f"Total products found: {total_products}")
 
         while skip < total_products:
             response = requests.get(f"{base_url}?limit={limit}&skip={skip}")
@@ -31,8 +35,9 @@ def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0
             data = response.json()
             all_products.extend(data['products'])
             skip += limit
+            logging.info(f"Fetched {len(data['products'])} products, skip={skip}")
     except requests.RequestException as e:
-        print(f"Error fetching products: {e}")
+        logging.error(f"Error fetching products: {e}")
         return []
 
     return all_products
@@ -47,7 +52,7 @@ def extract_relevant_fields(products):
     def calculate_final_price(product):
         return round(product['price'] - product['price'] * product['discountPercentage'] / 100, 2)
 
-    return [
+    extracted_data = [
         {
             "title": product["title"],
             "id": product["id"],
@@ -55,6 +60,8 @@ def extract_relevant_fields(products):
         }
         for product in products
     ]
+    logging.info(f"Extracted relevant fields for {len(products)} products")
+    return extracted_data
 
 
 def save_to_parquet(data, directory, file_name):
@@ -67,9 +74,11 @@ def save_to_parquet(data, directory, file_name):
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
+        logging.info(f"Created directory: {directory}")
     file_path = os.path.join(directory, file_name)
     df = pd.DataFrame(data)
     df.to_parquet(file_path, engine='pyarrow', index=False)
+    logging.info(f"Data saved to {file_path}")
     return file_path
 
 
@@ -81,6 +90,9 @@ def find_most_expensive_product(file_path):
     """
     df = pd.read_parquet(file_path, engine='pyarrow')
     most_expensive_product = df.loc[df['final_price'].idxmax()]
+    logging.info(
+        f"Most expensive product: {most_expensive_product['title']} with price {most_expensive_product['final_price']}"
+    )
     return most_expensive_product.to_dict()
 
 
@@ -95,6 +107,7 @@ def find_missing_data(reference_file_path, compare_file_path):
     compare_df = pd.read_parquet(compare_file_path, engine='pyarrow')
     merged_df = reference_df.merge(compare_df, on=['id', 'title'], how='left', indicator=True)
     missing_data = merged_df[merged_df['_merge'] == 'left_only'].drop(columns=['_merge'])
+    logging.info(f"Found {missing_data.shape[0]} missing products")
     return missing_data
 
 
@@ -109,6 +122,7 @@ def count_matching_prices(reference_file_path, compare_file_path):
     compare_df = pd.read_parquet(compare_file_path, engine='pyarrow')
     merged_df = reference_df.merge(compare_df, on=['id', 'title', 'final_price'], how='inner')
     matching_count = merged_df.shape[0]
+    logging.info(f"Number of matching prices: {matching_count}")
     return matching_count
 
 
@@ -118,9 +132,10 @@ def execute_task(compare_file_path=COMPARE_FILE_PATH):
     :param compare_file_path: (str) path to file with expected data
     :return: None
     """
+    logging.info("Starting task execution")
     products = get_all_products()
     if not products:
-        print("No products fetched, terminating task.")
+        logging.error("No products fetched, terminating task.")
         return
 
     relevant_data = extract_relevant_fields(products)
@@ -141,6 +156,8 @@ def execute_task(compare_file_path=COMPARE_FILE_PATH):
     print("3 - For how many rows final price in expected data matches with calculated price from actual data?")
     matching_count = count_matching_prices(reference_file_path, compare_file_path)
     print(f"Items with similar price: {matching_count}")
+
+    logging.info("Task execution finished")
 
 
 if __name__ == "__main__":
