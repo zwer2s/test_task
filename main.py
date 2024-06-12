@@ -4,26 +4,31 @@ import requests
 import pandas as pd
 from datetime import datetime
 
-LOG_DIR = "logs"
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
-
-log_file_name = datetime.now().strftime("log_%Y-%m-%d_%H-%M-%S.log")
-log_file_path = os.path.join(LOG_DIR, log_file_name)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file_path),
-        logging.StreamHandler()
-    ]
-)
 
 COMPARE_FILE_PATH = "data/product_prices_calculated.parquet"
 DATA_DIR = "data"
 REFERENCE_FILE_NAME = "products_new.parquet"
 REFERENCE_FILE_PATH = os.path.join(DATA_DIR, REFERENCE_FILE_NAME)
+
+
+def setup_logging():
+    log_dir = "logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    # Создание уникального имени файла для логов на основе текущей даты и времени
+    log_file_name = datetime.now().strftime("log_%Y-%m-%d_%H-%M-%S.log")
+    log_file_path = os.path.join(log_dir, log_file_name)
+
+    # Настройка базовой конфигурации логирования для записи в файл
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file_path),
+            logging.StreamHandler()
+        ]
+    )
 
 
 def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0):
@@ -176,4 +181,5 @@ def execute_task(compare_file_path=COMPARE_FILE_PATH):
 
 
 if __name__ == "__main__":
+    setup_logging()
     execute_task()
