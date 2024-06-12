@@ -70,6 +70,20 @@ def find_missing_data(reference_file_path, compare_file_path):
     return missing_data
 
 
+def count_matching_prices(reference_file_path, compare_file_path):
+    # Прочитать данные из файлов Parquet
+    reference_df = pd.read_parquet(reference_file_path, engine='pyarrow')
+    compare_df = pd.read_parquet(compare_file_path, engine='pyarrow')
+
+    # Найти совпадающие данные
+    merged_df = reference_df.merge(compare_df, on=['id', 'title', 'final_price'], how='inner')
+
+    # Посчитать количество совпадающих товаров по цене
+    matching_count = merged_df.shape[0]
+
+    return matching_count
+
+
 # Пример использования функции
 # products = get_all_products()
 # print(f"Получено {len(products)} продуктов.")
@@ -81,10 +95,16 @@ def find_missing_data(reference_file_path, compare_file_path):
 # most_expensive_product = find_most_expensive_product(file_path)
 # print(f"Самый дорогой товар: {most_expensive_product['title']}")
 
+# reference_file_path = "data/products_new.parquet"
+# compare_file_path = "data/product_prices_calculated.parquet"
+# missing_data = find_missing_data(reference_file_path, compare_file_path)
+# missing_titles = missing_data['title'].tolist()
+# print("Отсутствующие элементы:")
+# for title in missing_titles:
+#     print(title)
+
 reference_file_path = "data/products_new.parquet"
 compare_file_path = "data/product_prices_calculated.parquet"
-missing_data = find_missing_data(reference_file_path, compare_file_path)
-missing_titles = missing_data['title'].tolist()
-print("Отсутствующие элементы:")
-for title in missing_titles:
-    print(title)
+matching_count = count_matching_prices(reference_file_path, compare_file_path)
+
+print(f"Количество товаров с совпадающей ценой: {matching_count}")
