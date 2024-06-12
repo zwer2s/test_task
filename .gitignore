@@ -2,5 +2,6 @@
 .env
 .venv
 logs
+data/product_prices_calculated.parquet
 
 answers.txt
