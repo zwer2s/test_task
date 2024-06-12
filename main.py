@@ -3,6 +3,7 @@ import logging
 import requests
 import pandas as pd
 from datetime import datetime
+from pandas import DataFrame
 
 
 COMPARE_FILE_PATH = "data/product_prices_calculated.parquet"
@@ -31,7 +32,7 @@ def setup_logging():
     )
 
 
-def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0):
+def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0) -> list:
     """
     Getting the products list with all details from the link
     :param base_url: (str) link where products are listed
@@ -62,7 +63,7 @@ def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0
     return all_products
 
 
-def extract_relevant_fields(products):
+def extract_relevant_fields(products: list) -> list:
     """
     Extracting relevant fields from products to another list
     :param products: (list) list of products
@@ -83,7 +84,7 @@ def extract_relevant_fields(products):
     return extracted_data
 
 
-def save_to_parquet(data, directory, file_name):
+def save_to_parquet(data: list, directory: str, file_name: str) -> str:
     """
     Saving data to parquet file
     :param data: (list) data to save
@@ -101,7 +102,7 @@ def save_to_parquet(data, directory, file_name):
     return file_path
 
 
-def find_most_expensive_product(file_path):
+def find_most_expensive_product(file_path: str) -> str:
     """
     Finding the most expensive product
     :param file_path: (str) path to file with required data
@@ -115,7 +116,7 @@ def find_most_expensive_product(file_path):
     return most_expensive_product.to_dict()
 
 
-def find_missing_data(reference_file_path, compare_file_path):
+def find_missing_data(reference_file_path: str, compare_file_path: str) -> DataFrame:
     """
     Comparing 2 data files and looking for missing rows in one of them
     :param reference_file_path: (str) path to reference file
@@ -130,7 +131,7 @@ def find_missing_data(reference_file_path, compare_file_path):
     return missing_data
 
 
-def count_matching_prices(reference_file_path, compare_file_path):
+def count_matching_prices(reference_file_path: str, compare_file_path: str) -> int:
     """
     Counting how many products match in 2 files
     :param reference_file_path: (str) path to reference file
