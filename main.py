@@ -1,8 +1,11 @@
+import os
 import requests
 import pandas as pd
-import os
 
 COMPARE_FILE_PATH = "data/product_prices_calculated.parquet"
+DATA_DIR = "data"
+REFERENCE_FILE_NAME = "products_new.parquet"
+REFERENCE_FILE_PATH = os.path.join(DATA_DIR, REFERENCE_FILE_NAME)
 
 
 def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0):
@@ -16,21 +19,21 @@ def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0
     all_products = []
     total_products = 0
 
-    # Getting the amount of items
-    response = requests.get(f"{base_url}?limit=1")
-    if response.status_code == 200:
+    try:
+        response = requests.get(f"{base_url}?limit=1")
+        response.raise_for_status()
         data = response.json()
         total_products = data['total']
 
-    # Iterating through the pages of data
-    while skip < total_products:
-        response = requests.get(f"{base_url}?limit={limit}&skip={skip}")
-        if response.status_code == 200:
+        while skip < total_products:
+            response = requests.get(f"{base_url}?limit={limit}&skip={skip}")
+            response.raise_for_status()
             data = response.json()
             all_products.extend(data['products'])
             skip += limit
-        else:
-            break
+    except requests.RequestException as e:
+        print(f"Error fetching products: {e}")
+        return []
 
     return all_products
 
@@ -43,6 +46,7 @@ def extract_relevant_fields(products):
     """
     def calculate_final_price(product):
         return round(product['price'] - product['price'] * product['discountPercentage'] / 100, 2)
+
     return [
         {
             "title": product["title"],
@@ -58,7 +62,7 @@ def save_to_parquet(data, directory, file_name):
     Saving data to parquet file
     :param data: (list) data to save
     :param directory: (str) path to directory where data should be saved
-    :param file_name: (sta) file name where data should be saved
+    :param file_name: (str) file name where data should be saved
     :return: (str) path to the file where data will be saved
     """
     if not os.path.exists(directory):
@@ -75,12 +79,8 @@ def find_most_expensive_product(file_path):
     :param file_path: (str) path to file with required data
     :return: (dict) dictionary with most expensive product
     """
-    # Getting data from parquet file
     df = pd.read_parquet(file_path, engine='pyarrow')
-
-    # Looking for an item with the biggest price
     most_expensive_product = df.loc[df['final_price'].idxmax()]
-
     return most_expensive_product.to_dict()
 
 
@@ -91,14 +91,10 @@ def find_missing_data(reference_file_path, compare_file_path):
     :param compare_file_path: (str) path to file for comparison
     :return: (pandas.core.frame.DataFrame) dataframe with missing data
     """
-    # Getting data from parquet files
     reference_df = pd.read_parquet(reference_file_path, engine='pyarrow')
     compare_df = pd.read_parquet(compare_file_path, engine='pyarrow')
-
-    # Searching for missing items
     merged_df = reference_df.merge(compare_df, on=['id', 'title'], how='left', indicator=True)
     missing_data = merged_df[merged_df['_merge'] == 'left_only'].drop(columns=['_merge'])
-
     return missing_data
 
 
@@ -109,16 +105,10 @@ def count_matching_prices(reference_file_path, compare_file_path):
     :param compare_file_path: (str) path to file for comparison
     :return: (int) number of products match in 2 files
     """
-    # Getting data from parquet files
     reference_df = pd.read_parquet(reference_file_path, engine='pyarrow')
     compare_df = pd.read_parquet(compare_file_path, engine='pyarrow')
-
-    # Searching for the equal data
     merged_df = reference_df.merge(compare_df, on=['id', 'title', 'final_price'], how='inner')
-
-    # Counting rows of equal data
     matching_count = merged_df.shape[0]
-
     return matching_count
 
 
@@ -128,20 +118,18 @@ def execute_task(compare_file_path=COMPARE_FILE_PATH):
     :param compare_file_path: (str) path to file with expected data
     :return: None
     """
-    # Getting all products
     products = get_all_products()
-    # Getting required data from products and calculating it
-    relevant_data = extract_relevant_fields(products)
-    # Saving data to parquet file
-    reference_file_path = save_to_parquet(relevant_data, "./data", "products_new.parquet")
+    if not products:
+        print("No products fetched, terminating task.")
+        return
 
-    # 1 - Looking the most expensive item
+    relevant_data = extract_relevant_fields(products)
+    reference_file_path = save_to_parquet(relevant_data, DATA_DIR, REFERENCE_FILE_NAME)
+
     print("1 - What product is the most expensive according to actual data?")
     most_expensive_product = find_most_expensive_product(reference_file_path)
-    print(f"The most expensive is: {most_expensive_product['title']}")
-    print("\n")
+    print(f"The most expensive is: {most_expensive_product['title']}\n")
 
-    # 2 - Looking for missing data in expected data?
     print("2 - What product is missing in expected data?")
     missing_data = find_missing_data(reference_file_path, compare_file_path)
     missing_titles = missing_data['title'].tolist()
@@ -150,10 +138,8 @@ def execute_task(compare_file_path=COMPARE_FILE_PATH):
         print(title)
     print("\n")
 
-    # 3 - For how many rows final price in expected data matches with calculated price from actual data?
     print("3 - For how many rows final price in expected data matches with calculated price from actual data?")
     matching_count = count_matching_prices(reference_file_path, compare_file_path)
-
     print(f"Items with similar price: {matching_count}")
 
 
