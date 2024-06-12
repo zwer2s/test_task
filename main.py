@@ -157,4 +157,5 @@ def execute_task(compare_file_path=COMPARE_FILE_PATH):
     print(f"Items with similar price: {matching_count}")
 
 
-execute_task()
+if __name__ == "__main__":
+    execute_task()
