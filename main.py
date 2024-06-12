@@ -1,9 +1,24 @@
 import os
+import logging
 import requests
 import pandas as pd
-import logging
+from datetime import datetime
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+LOG_DIR = "logs"
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+log_file_name = datetime.now().strftime("log_%Y-%m-%d_%H-%M-%S.log")
+log_file_path = os.path.join(LOG_DIR, log_file_name)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file_path),
+        logging.StreamHandler()
+    ]
+)
 
 COMPARE_FILE_PATH = "data/product_prices_calculated.parquet"
 DATA_DIR = "data"
