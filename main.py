@@ -163,7 +163,7 @@ def execute_task(compare_file_path=COMPARE_FILE_PATH):
     print("2 - What product is missing in expected data?")
     missing_data = find_missing_data(reference_file_path, compare_file_path)
     missing_titles = missing_data['title'].tolist()
-    print("Missing data:")
+    print("Missing items:")
     for title in missing_titles:
         print(title)
     print("\n")
