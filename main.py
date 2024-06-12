@@ -1,4 +1,5 @@
 import requests
+import pandas as pd
 
 
 def get_all_products(limit=30):
@@ -26,8 +27,20 @@ def get_all_products(limit=30):
     return all_products
 
 
+def extract_relevant_fields(products):
+    a = 1
+    return [
+        {
+            "title": product["title"],
+            "id": product["id"],
+            "final_price": round(product['price'] - product['price'] * product['discountPercentage'] / 100, 2)
+        }
+        for product in products
+    ]
+
+
 # Пример использования функции
 products = get_all_products()
 print(f"Получено {len(products)} продуктов.")
-print(products)
-
+relevant_data = extract_relevant_fields(products)
+print(relevant_data)
