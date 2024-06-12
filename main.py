@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import os
 
 
 def get_all_products(limit=30):
@@ -39,8 +40,18 @@ def extract_relevant_fields(products):
     ]
 
 
+def save_to_parquet(data, directory, file_name):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    file_path = os.path.join(directory, file_name)
+    df = pd.DataFrame(data)
+    df.to_parquet(file_path, engine='pyarrow', index=False)
+
+
 # Пример использования функции
 products = get_all_products()
 print(f"Получено {len(products)} продуктов.")
 relevant_data = extract_relevant_fields(products)
 print(relevant_data)
+save_to_parquet(relevant_data, "./data", "products_new.parquet")
+
