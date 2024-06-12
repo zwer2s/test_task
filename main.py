@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import os
 
+COMPARE_FILE_PATH = "data/product_prices_calculated.parquet"
 
 def get_all_products(limit=30):
     base_url = "https://dummyjson.com/products"
@@ -46,6 +47,7 @@ def save_to_parquet(data, directory, file_name):
     file_path = os.path.join(directory, file_name)
     df = pd.DataFrame(data)
     df.to_parquet(file_path, engine='pyarrow', index=False)
+    return file_path
 
 
 def find_most_expensive_product(file_path):
@@ -84,27 +86,34 @@ def count_matching_prices(reference_file_path, compare_file_path):
     return matching_count
 
 
-# Пример использования функции
-# products = get_all_products()
-# print(f"Получено {len(products)} продуктов.")
-# relevant_data = extract_relevant_fields(products)
-# print(relevant_data)
-# save_to_parquet(relevant_data, "./data", "products_new.parquet")
+def execute_task(compare_file_path=COMPARE_FILE_PATH):
+    # Запрос продуктов
+    products = get_all_products()
+    # Выборка необходимых данных
+    relevant_data = extract_relevant_fields(products)
+    # Сохранение данных в parquet файл
+    reference_file_path = save_to_parquet(relevant_data, "./data", "products_new.parquet")
 
-# file_path = "data/products_new.parquet"
-# most_expensive_product = find_most_expensive_product(file_path)
-# print(f"Самый дорогой товар: {most_expensive_product['title']}")
+    # 1 - Поиск самого дорогого товара
+    print("1 - What product is the most expensive according to actual data?")
+    most_expensive_product = find_most_expensive_product(reference_file_path)
+    print(f"The most expensive is: {most_expensive_product['title']}")
+    print("\n")
 
-# reference_file_path = "data/products_new.parquet"
-# compare_file_path = "data/product_prices_calculated.parquet"
-# missing_data = find_missing_data(reference_file_path, compare_file_path)
-# missing_titles = missing_data['title'].tolist()
-# print("Отсутствующие элементы:")
-# for title in missing_titles:
-#     print(title)
+    # 2 - Looking for missing data in expected data?
+    print("2 - What product is missing in expected data?")
+    missing_data = find_missing_data(reference_file_path, compare_file_path)
+    missing_titles = missing_data['title'].tolist()
+    print("Missing data:")
+    for title in missing_titles:
+        print(title)
+    print("\n")
 
-reference_file_path = "data/products_new.parquet"
-compare_file_path = "data/product_prices_calculated.parquet"
-matching_count = count_matching_prices(reference_file_path, compare_file_path)
+    # 3 - For how many rows final price in expected data matches with calculated price from actual data?
+    print("3 - For how many rows final price in expected data matches with calculated price from actual data?")
+    matching_count = count_matching_prices(reference_file_path, compare_file_path)
 
-print(f"Количество товаров с совпадающей ценой: {matching_count}")
+    print(f"Items with similar price: {matching_count}")
+
+
+execute_task()
