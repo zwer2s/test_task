@@ -40,7 +40,6 @@ def get_all_products(base_url="https://dummyjson.com/products", limit=30, skip=0
     :return: (list) list of products with details
     """
     all_products = []
-    total_products = 0
 
     try:
         response = requests.get(f"{base_url}?limit=1")
