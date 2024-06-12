@@ -58,6 +58,18 @@ def find_most_expensive_product(file_path):
     return most_expensive_product.to_dict()
 
 
+def find_missing_data(reference_file_path, compare_file_path):
+    # Прочитать данные из файлов Parquet
+    reference_df = pd.read_parquet(reference_file_path, engine='pyarrow')
+    compare_df = pd.read_parquet(compare_file_path, engine='pyarrow')
+
+    # Найти недостающие данные
+    merged_df = reference_df.merge(compare_df, on=['id', 'title'], how='left', indicator=True)
+    missing_data = merged_df[merged_df['_merge'] == 'left_only'].drop(columns=['_merge'])
+
+    return missing_data
+
+
 # Пример использования функции
 # products = get_all_products()
 # print(f"Получено {len(products)} продуктов.")
@@ -65,6 +77,14 @@ def find_most_expensive_product(file_path):
 # print(relevant_data)
 # save_to_parquet(relevant_data, "./data", "products_new.parquet")
 
-file_path = "data/products_new.parquet"
-most_expensive_product = find_most_expensive_product(file_path)
-print(f"Самый дорогой товар: {most_expensive_product['title']}")
+# file_path = "data/products_new.parquet"
+# most_expensive_product = find_most_expensive_product(file_path)
+# print(f"Самый дорогой товар: {most_expensive_product['title']}")
+
+reference_file_path = "data/products_new.parquet"
+compare_file_path = "data/product_prices_calculated.parquet"
+missing_data = find_missing_data(reference_file_path, compare_file_path)
+missing_titles = missing_data['title'].tolist()
+print("Отсутствующие элементы:")
+for title in missing_titles:
+    print(title)
