@@ -48,10 +48,23 @@ def save_to_parquet(data, directory, file_name):
     df.to_parquet(file_path, engine='pyarrow', index=False)
 
 
-# Пример использования функции
-products = get_all_products()
-print(f"Получено {len(products)} продуктов.")
-relevant_data = extract_relevant_fields(products)
-print(relevant_data)
-save_to_parquet(relevant_data, "./data", "products_new.parquet")
+def find_most_expensive_product(file_path):
+    # Прочитать данные из файла Parquet
+    df = pd.read_parquet(file_path, engine='pyarrow')
 
+    # Найти строку с максимальной ценой
+    most_expensive_product = df.loc[df['final_price'].idxmax()]
+
+    return most_expensive_product.to_dict()
+
+
+# Пример использования функции
+# products = get_all_products()
+# print(f"Получено {len(products)} продуктов.")
+# relevant_data = extract_relevant_fields(products)
+# print(relevant_data)
+# save_to_parquet(relevant_data, "./data", "products_new.parquet")
+
+file_path = "data/products_new.parquet"
+most_expensive_product = find_most_expensive_product(file_path)
+print(f"Самый дорогой товар: {most_expensive_product['title']}")
